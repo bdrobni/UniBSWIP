@@ -1,0 +1,129 @@
+﻿@model ObjectBO
+@{
+    ViewData["Title"] = "ArticleView";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <div class="col-6">
+        <h1>@Model.Title</h1>
+    </div>
+    <div class="col-6">
+        Author: @Model.Author.Username        
+    </div>
+    <div class="col-10">
+        <h3>Description</h3>
+        @Html.Raw(Model.Description)
+    </div>
+    <div class="col-6">
+        Tags: 
+        @if (Model.CurrentUser != null && Model.CurrentUser.Username == Model.Author.Username || Model.CurrentUser != null && Model.CurrentUser.UserRole == "admin" && Model.Tags != null)
+        {
+            @foreach (var f in Model.Tags)
+            {
+                <p>@f.Name</p> @Html.ActionLink("X", "RemoveTag", new { objid = Model.Id, tagid = f.Id }, new { @class = "btn btn-secondary" })
+            }
+        }
+        else @foreach (var f in Model.Tags)
+            {
+                <h3>@f.Name</h3>
+            }
+    </div>
+    @*
+    @if(Model.Images != null)
+    {
+        <div class="col-12">
+            <div id="carouselImages" class="carousel slide" data-ride="carousel">
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img class="d-block w-100" src="@Model.ImagePath(Model.Images.ElementAt(0).ObjContent)">
+                    </div>
+                    @for (int i = 1; i < Model.Images.Count(); i++)
+                    {
+                        <div class="carousel-item">
+                            <img class="d-block w-100" src="@Model.ImagePath(Model.Images.ElementAt(i).ObjContent)">
+                        </div>
+                    }
+                </div>
+                <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Previous</span>
+                </a>
+                <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Next</span>
+                </a>
+            </div>
+        </div>
+    }
+    *@
+    <div class="row">   
+        <div class="col-8">
+            @Html.Raw(Model.ObjContent)
+        </div>
+        <div class="col-4">
+            @if (Model.CurrentUser != null && Model.CurrentUser.Username == Model.Author.Username || Model.CurrentUser != null && Model.CurrentUser.UserRole == "admin")
+            {
+                <p>Add tags:</p>
+                <table class="table-hover">
+                    <thead>
+                    <tr>
+                        <th scope="col">
+                            Name
+                        </th>
+                        <th scope="col">
+                            Description
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach(var t in Model.AllTags)
+                    {
+                        <tr>
+                            <th scope="row">
+                                @Html.DisplayFor(modelItem => t.Name)
+                            </th>
+                            <td>
+                                @Html.DisplayFor(modelItem => t.Description)
+                            </td>
+                            <td>
+                                    @Html.ActionLink("Add", "AddTag", new { objid = Model.Id, tagid = t.Id })
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+    <div class="col-6">
+        Attachments:
+        @if (Model.CurrentUser != null && Model.CurrentUser.Username == Model.Author.Username || Model.CurrentUser != null && Model.CurrentUser.UserRole == "admin" && Model.AttachedObjects != null)
+        {
+            foreach(var f in Model.AttachedObjects)
+            {
+                if(f.Filetype == "model")
+                {
+                    @Html.ActionLink(f.Title, "ModelDetails", new { id = f.Id }, new { @class = "btn btn-outline-primary" }) @Html.ActionLink("X", "RemoveAttachment", new { parentid = Model.Id, childid = f.Id }, new { @class = "btn btn-outline-primary" })
+                }
+            }
+        }
+        else if (Model.AttachedObjects != null)
+        {
+            foreach (var f in Model.AttachedObjects)
+            {
+                if (f.Filetype == "model")
+                {
+                    @Html.ActionLink(f.Title, "ModelDetails", new { id = f.Id }, new { @class = "btn btn-outline-primary" })
+                }
+            }
+        }
+    </div>
+    <div class="col-6">
+        @if (Model.CurrentUser != null && Model.CurrentUser.Username == Model.Author.Username || Model.CurrentUser != null && Model.CurrentUser.UserRole == "admin")
+        {
+            @Html.ActionLink("Delete article", "DeleteUserArticle", new { id = Model.Id }, new { @class = "btn btn-outline-primary" })
+        }
+    </div>
+</div>
+

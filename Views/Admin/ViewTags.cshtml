@@ -1,0 +1,51 @@
+﻿@model IEnumerable<TagBO>
+@{
+    ViewData["Title"] = "ViewTags";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <h1>Tag administration</h1>
+    <br />
+    <a asp-action="CreateTag" class="btn btn-primary">Create new tag</a>
+    <br />
+    <p>Tags in database</p>
+    <table class="table-hover">
+        <thead>
+        <tr>
+            <th scope="col">
+                Id
+            </th>
+            <th scope="col">
+                Name
+            </th>
+            <th scope="col">
+                Description
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach(var t in Model)
+        {
+            <tr>
+                <th scope="row">
+                    @Html.DisplayFor(modelItem => t.Id)
+                </th>
+                <td>
+                    @Html.DisplayFor(modelItem => t.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => t.Description)
+                </td>
+                <td>
+                    @Html.ActionLink("Edit tag", "AlterTag", new { id = t.Id })
+                </td>
+                <td>
+                    @Html.ActionLink("Delete tag", "DeleteTag", new { id = t.Id })
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+

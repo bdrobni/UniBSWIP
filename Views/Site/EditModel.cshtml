@@ -1,0 +1,29 @@
+﻿@model ModelBO
+@{
+    ViewData["Title"] = "EditModel";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <h1>Edit model information</h1>
+
+    <form asp-action="ChangeModel" enctype="multipart/form-data" method="post">
+        <input type="hidden" asp-for="Id" />
+        <div class="col-lg-10">
+            Title
+            @Html.TextBoxFor(model => model.Title, new { @class = "form-control", @row = 10 })
+        </div>
+        <div class="col-lg-10">
+            Description
+            @Html.TextBoxFor(model => model.Description, new { @class = "form-control", @row = 10 })
+        </div>
+        <br />
+        <button type="submit" class="btn btn-primary">Save changes</button>
+    </form>
+    <div>
+        @if (Model.CurrentUser != null && Model.CurrentUser.Username == Model.Author.Username)
+        {
+            @Html.ActionLink("Attach an image", "AttachImage", new { id = Model.Id }, new { @class = "btn btn-outline-primary" })
+        }
+    </div>
+</div>

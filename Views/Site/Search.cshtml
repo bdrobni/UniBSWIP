@@ -1,0 +1,118 @@
+﻿@model SearchViewModel
+@{
+    ViewData["Title"] = "Search";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+
+    <div>
+        @using (Html.BeginForm("SearchModelsByCriteria", "Site", FormMethod.Post))
+        {
+            <div>
+                <div class="row">
+                    <div class="col-6">
+                        <p>Search by tag</p>
+                        <input type="text" id="tagsbox" asp-for="SearchBoxContent" />
+                    </div>
+                    <div class="col-4">
+                        <input type="submit" class="btn btn-outline-primary" value="Search" />
+                    </div>
+                </div>                
+                <br />
+                <div class="row">
+                    <div class="col-6">
+                        <p>Search for a specific author: </p>
+                        <input type="text" asp-for="SelectedAuthor" />
+                        <br />
+                        <p>Search for:</p>
+                        <input type="radio" asp-for="SelectedFileType" value="all" checked="checked" /> All
+                        <input type="radio" asp-for="SelectedFileType" value="article" /> Articles
+                        <input type="radio" asp-for="SelectedFileType" value="model"  /> Models
+                    </div>
+                    <div class="col-6">
+                        <p>Sort by age: </p>
+                        <input type="radio" asp-for="SortOption" value="newest" checked="checked" /> Newest first
+                        <input type="radio" asp-for="SortOption" value="oldest" /> Oldest first
+                    </div>
+                </div>               
+            </div>           
+        }
+    </div>
+    <br />
+    <div class="row">
+
+        <div class="col-6">
+            <table class="table-hover table-light">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        Title
+                    </th>
+                    <th scope="col">
+                        Author
+                    </th>
+                    <th scope="col">
+                        Date added
+                    </th>
+                    <th scope="col">
+                        Type
+                    </th>
+                </tr>
+                </thead>
+                <tbody>               
+                    @if(Model.SelectedObjects != null)
+                    {
+                        foreach (var f in Model.SelectedObjects)
+                        {
+                            <tr>
+                            <th scope="row">
+                                @if (f.Filetype == "article")
+                                {
+                                    @Html.ActionLink(f.Title, "ArticleView", new { id = f.Id }, new { @class = "btn btn-outline-primary" })
+                                }
+                                else if (f.Filetype == "model")
+                                {
+                                    @Html.ActionLink(f.Title, "ModelDetails", new { id = f.Id }, new { @class = "btn btn-outline-primary" })
+                                }
+                            </th>
+                            <td>
+                                @Html.DisplayFor(modelItem => f.Author.Username)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => f.CreatedDate)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => f.Filetype)
+                            </td>
+                            <td>
+                            </td>
+                            </tr>
+                        }
+                    }               
+                </tbody>
+            </table>
+        </div>
+        <div class="col-6">
+            <p>Tags</p>
+            <br />
+            @if(Model.Tags != null)
+            {
+                foreach (var f in Model.Tags)
+                {
+                    <button class="btn btn-outline-primary" onclick="addTag(this.innerHTML)">@f.Name</button>
+                    <br />
+                    <br />
+                }
+            }
+        </div>
+
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    function addTag(tagtext){
+        document.getElementById('tagsbox').value += tagtext + ",";
+    }
+</script>

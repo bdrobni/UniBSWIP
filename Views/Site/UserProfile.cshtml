@@ -1,0 +1,66 @@
+﻿@model UserBO
+@{
+    ViewData["Title"] = "UserProfile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <h1>My profile</h1>
+    <br />
+    <h3>@Model.Username</h3>
+    <div class="row">
+        <div class="col-6">
+            <h5>Registered email</h5>
+            <p>@Model.Email</p>
+            <h5>User role</h5>
+            <p>@Model.UserRole</p>
+        </div>
+        <div class="col-6">            
+            @if (Model.AttachedObjects != null)
+            {
+                <h3>My articles and models</h3>
+                <table class="table-hover">
+                    <thead>
+                    <tr>
+                        <th scope="col">
+                            Title
+                        </th>
+                        <th scope="col">
+                            Date added
+                        </th>
+                        <th scope="col">
+                            Type
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>                    
+                        @foreach (var f in Model.AttachedObjects)
+                        {
+                            <tr>
+                            <th scope="row">
+                                @if (f.Filetype == "article")
+                                {
+                                    @Html.ActionLink(f.Title, "ArticleView", new { id = f.Id }, new { @class = "btn btn-outline-primary" })
+                                }
+                                else if (f.Filetype == "model")
+                                {
+                                    @Html.ActionLink(f.Title, "ModelDetails", new { id = f.Id }, new { @class = "btn btn-outline-primary" })
+                                }
+                            </th>
+                            <td>
+                                @Html.DisplayFor(modelItem => f.CreatedDate)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => f.Filetype)
+                            </td>
+                            <td>
+                            </td>
+                            </tr>
+                        }                    
+                    </tbody>
+                </table>
+            }           
+        </div>
+    </div>
+</div>
+

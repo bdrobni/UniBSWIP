@@ -1,0 +1,54 @@
+﻿@model IEnumerable<UserBO>
+@{
+    ViewData["Title"] = "ViewUsers";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <p>Users in database</p>
+    <br />
+    <table class="table-hover">
+        <thead>
+        <tr>
+            <th scope="col">
+                ID
+            </th>
+            <th scope="col">
+                Username
+            </th>
+            <th scope="col">
+                E-mail
+            </th>
+            <th scope="col">
+                User role
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var k in Model)
+        {
+            <tr>
+                <th scope="row">
+                    @Html.DisplayFor(modelItem => k.Id)
+                </th>
+                <td>
+                    @Html.DisplayFor(modelItem => k.Username)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => k.Email)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => k.UserRole)
+                </td>
+                <td>
+                    @Html.ActionLink("Edit user", "AlterUser", new { id = k.Id })
+                </td>
+                <td>
+                    @Html.ActionLink("Delete user", "ConfirmDeleteUser", new { id = k.Id })
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+

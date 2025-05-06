@@ -1,0 +1,46 @@
+﻿@model ObjectBO
+@{
+    ViewData["Title"] = "CreateArticle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <h1>Write a new article</h1>
+
+    <div>
+        <form asp-action="SaveArticle" method="post">
+        @Html.AntiForgeryToken()
+        <div>
+                <div class="col-lg-10">
+                    Title
+                    @Html.TextBoxFor(model => model.Title, new { @class = "form-control", @row = 10 })
+                </div>
+                <div class="col-lg-10">
+                    Description
+                    @Html.TextBoxFor(model => model.Description, new { @class = "form-control", @row = 10 })
+                </div>
+                <br />
+                <div class="col-lg-10">
+                    @Html.TextAreaFor(model => model.ObjContent, new { @class = "form-control", @row = 10 })
+                </div>
+
+                <br />
+                <div class="form-group">
+                    <input type="submit" name="submit" class="btn btn-outline-primary" value="Post article" />
+                </div>
+        </div>           
+        </form>
+        <br />
+
+    </div>
+
+</div>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/froala-editor@latest/js/froala_editor.pkgd.min.js"></script>
+<!-- Include the Quill library -->
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+
+<!-- Initialize Quill editor -->
+<script>
+    new FroalaEditor('textarea');
+</script>
+
