@@ -1,0 +1,15 @@
+# Visual Studio workspace files
+.vs/
+*.user
+
+# build outputs
+bin/
+obj/
+
+# Rider / Resharper caches (if you use those)
+.idea/
+_ReSharper*/
+
+# OS generated files
+.DS_Store
+Thumbs.db

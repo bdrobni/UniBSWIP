@@ -1,0 +1,65 @@
+﻿@model IndexViewModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-10">
+            Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+            <br />
+            <br />
+            Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+            <br />
+            <br />
+            Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+        </div>
+        <div class="col-2">
+            @if (Model.CurrentUser == null)
+            {
+                <div>
+                    <a class="btn btn-outline-primary" asp-area="" asp-controller="Login" asp-action="Login">Login</a>
+                </div>
+                <br />
+                <div>
+                    <a class="btn btn-outline-primary" asp-area="" asp-controller="Site" asp-action="Register">Register</a>
+                </div>
+                <br />
+            }
+            @if (Model.CurrentUser != null)
+            {
+                <div>
+                    @Html.ActionLink("My profile", "UserProfile", "Site", new { id = Model.CurrentUser.Id }, new { @class = "btn btn-outline-primary" })
+                </div>
+                <br />
+                <div>
+                    <a class="btn btn-outline-primary" asp-area="" asp-controller="Site" asp-action="UploadFile">Upload file</a>
+                </div>
+                <br />
+                <div>
+                    <a class="btn btn-outline-primary" asp-area="" asp-controller="Site" asp-action="CreateArticle">Write a new article</a>
+                </div>
+                <br />
+            }           
+            <div>
+                <a class="btn btn-outline-primary" asp-area="" asp-controller="Site" asp-action="Search">Search articles and files</a>
+            </div>
+            <br />
+            @if (Model.CurrentUser != null && Model.CurrentUser.UserRole == "admin")
+            {
+                <div>
+                    <a class="btn btn-outline-primary" asp-area="" asp-controller="Admin" asp-action="ViewTags">Tag administration</a>
+                </div>
+                <br />
+                <div>
+                    <a class="btn btn-outline-primary" asp-area="" asp-controller="Admin" asp-action="ViewUsers">User administration</a>
+                </div>
+                <br />
+            }
+            @if (Model.CurrentUser != null)
+            {
+                <a class="btn btn-outline-primary" asp-area="" asp-controller="Login" asp-action="Logout">Logout</a>
+            }
+        </div>
+    </div>   
+</div>

@@ -1,0 +1,19 @@
+﻿@model ObjectBO
+@{
+    ViewData["Title"] = "AttachFile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <h1>Select a file to attach</h1>
+    @foreach(ObjectBO objectBO in Model.Objects)
+    {
+        if (objectBO.Filetype == "model" && objectBO.Author == Model.CurrentUser)
+        {
+            @Html.ActionLink(objectBO.Title, "AddAttachment", new { parentid = Model.Id, childid = objectBO.Id }, new { @class = "btn btn-outline-primary" })
+            <br />
+            <br />
+        }
+    }
+</div>
+

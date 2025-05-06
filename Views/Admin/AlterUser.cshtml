@@ -1,0 +1,33 @@
+﻿@model UserBO
+@{
+    ViewData["Title"] = "AlterUser";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div container>
+    <form asp-action="ChangeUser" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="Id"/>
+        <div>
+            Username:
+            <input asp-for="Username" class="form-control" />
+        </div>
+        <br />
+        <div>
+            Email:
+            <input asp-for="Email" class="form-control" />
+        </div>
+        <br />
+        <div>
+            User role:
+            <br />
+            <input type="radio" value="user" asp-for="UserRole" /> User
+            <br />
+            <input type="radio" value="admin" asp-for="UserRole" /> Administrator
+        </div>
+        <div class="form-group">
+            <input type="submit" name="submit" class="btn btn-outline-primary" value="Save changes" />
+        </div>
+    </form>
+</div>
+

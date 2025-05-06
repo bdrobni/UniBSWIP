@@ -1,0 +1,25 @@
+﻿@model ModelBO
+@{
+    ViewData["Title"] = "UploadFile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <h1>Upload file</h1>
+
+    <form asp-action="ModelUpload" enctype="multipart/form-data" method="post">
+        <div class="col-lg-10">
+            Title
+            @Html.TextBoxFor(model => model.Title, new { @class = "form-control", @row = 10 })
+        </div>
+        <div class="col-lg-10">
+            Description
+            @Html.TextBoxFor(model => model.Description, new { @class = "form-control", @row = 10 })
+        </div>
+        <br />
+        <div class="form-group">
+            <input type="file" asp-for="File" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+</div>

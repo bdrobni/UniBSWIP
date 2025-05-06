@@ -1,0 +1,17 @@
+﻿@model ModelBO
+@{
+    ViewData["Title"] = "AttachImage";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <h1>Select an image to upload</h1>
+
+    <form asp-action="ImageUpload" enctype="multipart/form-data" method="post">
+        <div class="form-group">
+            <input type="file" asp-for="File" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Attach image</button>
+    </form>
+</div>
+
