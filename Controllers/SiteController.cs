@@ -90,33 +90,37 @@ namespace dipwebapp.Controllers
         {
             SearchViewModel svm = searchviewmodel;
             List<ObjectBO> objectList = (List<ObjectBO>)_siteRepository.FetchObjectList();
-            if(svm.SearchBoxContent != null || svm.SearchBoxContent != "")
+            if(svm.SearchBoxContent != null && svm.SearchBoxContent != "")
             {
                 string[] tags = svm.SearchBoxContent.Split(',');
                 svm.Tags = (List<TagBO>)_siteRepository.GetTagList();
                 List<TagBO> tagList = (List<TagBO>)_siteRepository.GetTagListByNames(tags);
-                foreach (TagBO tagBO in tagList) { Console.WriteLine(tagBO.Name); }
                 foreach (TagBO tag in tagList)
                 {
                     for (int i = objectList.Count - 1; i >= 0; i--) 
                     {
                         if (!_siteRepository.CheckAssociation(tag, objectList.ElementAt(i)))
-                            objectList.Remove(objectList.ElementAt(i));
-                    }
-                }
-                for (int i = objectList.Count - 1; i >= 0; i--)
-                {
-                    if (svm.SelectedFileType != "all")
-                    {
-                        if (svm.SelectedFileType != objectList.ElementAt(i).Filetype)
                         {
-                            objectList.Remove(objectList.ElementAt(i));
-                        }
+                            Console.WriteLine("removed non-tagged" + objectList.ElementAt(i).Title);
+                            objectList.Remove(objectList.ElementAt(i));                           
+                        }                       
                     }
-                    else if (objectList.ElementAt(i).Filetype == "image")
+                }               
+            }
+            for (int i = objectList.Count - 1; i >= 0; i--)
+            {
+                if (svm.SelectedFileType != "all")
+                {
+                    if (svm.SelectedFileType != objectList.ElementAt(i).Filetype)
                     {
+                        Console.WriteLine("removed" + objectList.ElementAt(i).Filetype + objectList.ElementAt(i).Title);
                         objectList.Remove(objectList.ElementAt(i));
                     }
+                }
+                else if (objectList.ElementAt(i).Filetype == "image")
+                {
+                    Console.WriteLine("removed" + objectList.ElementAt(i).Filetype + objectList.ElementAt(i).Title);
+                    objectList.Remove(objectList.ElementAt(i));
                 }
             }
             if (svm.SortOption == "oldest")
@@ -125,6 +129,7 @@ namespace dipwebapp.Controllers
             }
 
             svm.SelectedObjects = objectList;
+            svm.Tags = (List<TagBO>)_siteRepository.GetTagList();
             return View("Search", svm);
         }
         public IActionResult ArticleView(int id) 
