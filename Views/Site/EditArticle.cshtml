@@ -10,8 +10,8 @@
     <div>
         <form asp-action="ChangeArticle" method="post">
             @Html.AntiForgeryToken()
-            <input type="hidden" asp-for="Id" />
             <div>
+                <input type="hidden" asp-for="Id" />
                 <div class="col-lg-10">
                     Title
                     @Html.TextBoxFor(model => model.Title, new { @class = "form-control", @row = 10 })

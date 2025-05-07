@@ -20,10 +20,11 @@ namespace dipwebapp.Models
         public IEnumerable<ObjectBO>? AttachedObjects { get; set; }
         public IEnumerable<ObjectBO>? Images { get; set; }
         public int Tempid {  get; set; }
+        public string WebRootString { get; set; }
 
         public string ImagePath(string filename)
         {
-            string filePath = Path.Combine(_environment.WebRootPath, "images", filename);
+            string filePath = Path.Combine(WebRootString, "images", filename);
             return filePath;
         }
     }

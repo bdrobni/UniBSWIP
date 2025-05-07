@@ -1,9 +1,11 @@
 ﻿using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using dipwebapp.Controllers;
 using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using XAct;
+using XAct.Users;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace dipwebapp.Models.Repository
@@ -282,6 +284,7 @@ namespace dipwebapp.Models.Repository
             {
                 authoredobj.Title = objectBO.Title;
                 authoredobj.Objdescription = objectBO.Description;
+                context.SaveChanges();
             }
         }
 
@@ -306,7 +309,7 @@ namespace dipwebapp.Models.Repository
             List<ObjectBO> models = new List<ObjectBO>();
             foreach (Authoredobj a in context.Authoredobj)
             {
-                if (a.Filetype == "model" || a.Filetype == "article")
+                if (a.Filetype != "image")
                 {
                     models.Add(FetchFileInfo(a.Id));
                 }
@@ -412,11 +415,16 @@ namespace dipwebapp.Models.Repository
         public void AlterArticle(ObjectBO articleBO)
         {
             Authoredobj authoredobj = context.Authoredobj.FirstOrDefault(a=>a.Id == articleBO.Id);
-            if(authoredobj != null && authoredobj.Filetype == "article")
+            if (authoredobj == null)
+                throw new InvalidOperationException($"File not found");
+            else if (authoredobj != null)
             {
+                Console.WriteLine(articleBO.Title);
+                Console.WriteLine(articleBO.Description);
                 authoredobj.Title = articleBO.Title;
                 authoredobj.Objdescription = articleBO.Description;
                 authoredobj.Objcontent = articleBO.ObjContent;
+                context.SaveChanges();
             }
         }
 
@@ -534,8 +542,12 @@ namespace dipwebapp.Models.Repository
         public void AlterTag (TagBO tagBO)
         {
             Tag tag = context.Tag.FirstOrDefault(i => i.Id == tagBO.Id);
-            tag.Tagname = tagBO.Name;
-            tag.Tagdescription = tagBO.Description;
+            if(tag != null)
+            {
+                tag.Tagname = tagBO.Name;
+                tag.Tagdescription = tagBO.Description;
+                context.SaveChanges();
+            }           
         }
         public bool CheckAssociation(TagBO tagBO, ObjectBO objectBO)
         {

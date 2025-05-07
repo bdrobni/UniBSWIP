@@ -52,7 +52,7 @@ namespace dipwebapp.Controllers
         }
         public IActionResult ViewTags()
         {
-            return View();
+            return View(_siteRepository.GetTagList());
         }
         public IActionResult CreateTag()
         {
@@ -99,7 +99,7 @@ namespace dipwebapp.Controllers
             try
             {                
                 _adminRepository.DeleteTag(id);
-                return View("ViewTags");
+                return View("ViewTags", _siteRepository.GetTagList());
             }
             catch (Exception ex)
             {

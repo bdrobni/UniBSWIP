@@ -29,8 +29,8 @@
                 <h3>@f.Name</h3>
             }
     </div>
-    @*
-    @if(Model.Images != null)
+    
+    @if(Model.Images != null && Model.Images.Count() > 0)
     {
         <div class="col-12">
             <div id="carouselImages" class="carousel slide" data-ride="carousel">
@@ -56,7 +56,7 @@
             </div>
         </div>
     }
-    *@
+    
     <div class="row">   
         <div class="col-8">
             @Html.Raw(Model.ObjContent)
@@ -119,9 +119,12 @@
             }
         }
     </div>
+    <br />
     <div class="col-6">
         @if (Model.CurrentUser != null && Model.CurrentUser.Username == Model.Author.Username || Model.CurrentUser != null && Model.CurrentUser.UserRole == "admin")
         {
+            @Html.ActionLink("Edit article", "EditArticle", new { id = Model.Id }, new { @class = "btn btn-outline-primary" })
+            <br />
             @Html.ActionLink("Delete article", "DeleteUserArticle", new { id = Model.Id }, new { @class = "btn btn-outline-primary" })
         }
     </div>
