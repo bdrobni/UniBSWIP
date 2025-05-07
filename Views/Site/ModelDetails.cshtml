@@ -13,7 +13,7 @@
             <div>
                 Author: @Model.Author.Username
             </div>
-            @if (Model.Images != null)
+            @if (Model.Images != null && Model.Images.Count() > 0)
             {
                 <div class="col-12">
                     <div id="carouselImages" class="carousel slide" data-ride="carousel">

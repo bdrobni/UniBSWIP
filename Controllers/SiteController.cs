@@ -10,13 +10,23 @@ namespace dipwebapp.Controllers
 {
     public class SiteController : Controller
     {
-        
+        diplomskidbContext context = new diplomskidbContext();
         const string SessionUserID = "_UserID";
         const string SessionUsername = "_Username";
         const string SessionUserRole = "_Role";
 
         private SiteRepository _siteRepository = new SiteRepository();
         private AdminRepository _adminRepository = new AdminRepository();
+
+        private readonly ILogger<HomeController> _logger;
+        private readonly IWebHostEnvironment _environment;
+
+        public SiteController(ILogger<HomeController> logger, IWebHostEnvironment environment)
+        {
+            _logger = logger;
+            _environment = environment;
+        }
+
         public IActionResult Register()
         {
             return View();
@@ -69,25 +79,21 @@ namespace dipwebapp.Controllers
         }
 
         public IActionResult Search(SearchViewModel searchViewModel)
-        {
-            if (searchViewModel == null)
-            {
-                searchViewModel = new SearchViewModel();
-            }     
-            if(searchViewModel.SelectedObjects == null)
-            {
-                searchViewModel.SelectedObjects = (List<ObjectBO>)_siteRepository.FetchObjectList();
-            }
+        {           
+            searchViewModel = new SearchViewModel();      
+            searchViewModel.SelectedObjects = (List<ObjectBO>)_siteRepository.FetchObjectList();           
             searchViewModel.Tags = (List<TagBO>)_siteRepository.GetTagList();
             
             return View(searchViewModel);
         }
-        public IActionResult SearchModelsByCriteria(SearchViewModel svm)
-        {           
+        public IActionResult SearchModelsByCriteria(SearchViewModel searchviewmodel)
+        {
+            SearchViewModel svm = searchviewmodel;
             List<ObjectBO> objectList = (List<ObjectBO>)_siteRepository.FetchObjectList();
             if(svm.SearchBoxContent != null || svm.SearchBoxContent != "")
             {
                 string[] tags = svm.SearchBoxContent.Split(',');
+                svm.Tags = (List<TagBO>)_siteRepository.GetTagList();
                 List<TagBO> tagList = (List<TagBO>)_siteRepository.GetTagListByNames(tags);
                 foreach (TagBO tagBO in tagList) { Console.WriteLine(tagBO.Name); }
                 foreach (TagBO tag in tagList)
@@ -98,30 +104,28 @@ namespace dipwebapp.Controllers
                             objectList.Remove(objectList.ElementAt(i));
                     }
                 }
-            }
-
-            for (int i = objectList.Count - 1; i >= 0; i--)
-            {
-                if (svm.SelectedFileType != "all")
+                for (int i = objectList.Count - 1; i >= 0; i--)
                 {
-                    if (svm.SelectedFileType != objectList.ElementAt(i).Filetype)
+                    if (svm.SelectedFileType != "all")
+                    {
+                        if (svm.SelectedFileType != objectList.ElementAt(i).Filetype)
+                        {
+                            objectList.Remove(objectList.ElementAt(i));
+                        }
+                    }
+                    else if (objectList.ElementAt(i).Filetype == "image")
                     {
                         objectList.Remove(objectList.ElementAt(i));
                     }
                 }
-                else if (objectList.ElementAt(i).Filetype == "image")
-                {
-                    objectList.Remove(objectList.ElementAt(i));
-                }
             }
-
-            if(svm.SortOption == "oldest")
+            if (svm.SortOption == "oldest")
             {
                 objectList = (List<ObjectBO>)objectList.OrderBy(o => o.CreatedDate);
             }
 
             svm.SelectedObjects = objectList;
-            return RedirectToAction("Search", new { searchViewModel = svm });
+            return View("Search", svm);
         }
         public IActionResult ArticleView(int id) 
         {
@@ -132,6 +136,7 @@ namespace dipwebapp.Controllers
             objectBO.Images = from attached in objectBO.AttachedObjects
                               where attached.Filetype == "image"
                               select attached;
+            objectBO.WebRootString = _environment.WebRootPath;
             int ? userID = null;
             if (HttpContext.Session.GetInt32("_UserID") != null)
             {
@@ -152,6 +157,7 @@ namespace dipwebapp.Controllers
             objectBO.Images = from attached in objectBO.AttachedObjects
                               where attached.Filetype == "image"
                               select attached;
+            objectBO.WebRootString = _environment.WebRootPath;
             int? userID = null;
             if (HttpContext.Session.GetInt32("_UserID") != null)
             {
@@ -181,25 +187,19 @@ namespace dipwebapp.Controllers
         }
         public IActionResult ModelUpload(ModelBO modelBO)
         {
-            var allowedExtensions = new[] { ".obj, .blend, .stl, .glb, .glTF , .fbx" };
-            var extension = Path.GetExtension(modelBO.File.FileName);
             modelBO.Author = _siteRepository.GetUser((int)HttpContext.Session.GetInt32("_UserID"));
             modelBO.CreatedDate = DateTime.Now;
             modelBO.Filename = modelBO.File.FileName;
-            modelBO.Filetype = "model";
-            if(allowedExtensions.Contains(extension))
-            {
+            modelBO.Filetype = "model";            
                 try
                 {
-                    _siteRepository.InsertFile(modelBO);
+                    InsertFile(modelBO);
                     return View("UserMessage", "Your file has been uploaded");
                 }
                 catch (Exception ex)
                 {
                     return View("UserMessage", "An error occurred, please try again." + ex.Message);
                 }
-            }
-            else return View("UserMessage", "This file format is not supported.");
         }
         public IActionResult AttachImage(int id)
         {
@@ -209,19 +209,15 @@ namespace dipwebapp.Controllers
         }
         public IActionResult ImageUpload(ModelBO modelBO)
         {
-            var allowedExtensions = new[] { ".jpg, .jpeg, .png, .bmp" };
-            var extension = Path.GetExtension(modelBO.File.FileName);
             modelBO.Id = _siteRepository.GenerateFileID();
             modelBO.Author = _siteRepository.GetUser((int)HttpContext.Session.GetInt32("_UserID"));
             modelBO.Title = modelBO.File.FileName;
             modelBO.CreatedDate = DateTime.Now;
             modelBO.Filename = modelBO.File.FileName;
-            modelBO.Filetype = "image";
-            if (allowedExtensions.Contains(extension))
-            {
+            modelBO.Filetype = "image";          
                 try
                 {
-                    _siteRepository.InsertFile(modelBO);
+                    InsertImage(modelBO);
                     AddAttachment(modelBO.Id, modelBO.Tempid);
                     return View("UserMessage", "Your image has been uploaded");
                 }
@@ -229,12 +225,77 @@ namespace dipwebapp.Controllers
                 {
                     return View("UserMessage", "An error occurred, please try again." + ex.Message);
                 }
+        }
+        public void InsertImage(ModelBO modelBO)
+        {
+            Authoredobj authoredobj = new Authoredobj();
+            authoredobj.Id = modelBO.Id;
+            authoredobj.Authorid = modelBO.Author.Id;
+            authoredobj.Title = modelBO.Title;
+            authoredobj.Createddate = modelBO.CreatedDate;
+            authoredobj.Filetype = modelBO.Filetype;
+            authoredobj.Objdescription = "placeholder";
+            authoredobj.Objcontent = modelBO.Filename;
+            context.Add(authoredobj);
+            context.SaveChanges();
+
+            string uploadPath = Path.Combine(_environment.WebRootPath, "images");
+
+            if (!Directory.Exists(uploadPath))
+            {
+                Directory.CreateDirectory(uploadPath);
             }
-            else return View("UserMessage", "This file format is not supported.");
+            string filePath = Path.Combine(uploadPath, modelBO.Filename);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                modelBO.File.CopyToAsync(stream);
+            }
+        }
+        public void InsertFile(ModelBO modelBO)
+        {
+            Authoredobj authoredobj = new Authoredobj();
+            authoredobj.Id = context.Authoredobj.MakeUniqueIdentifier();
+            authoredobj.Authorid = modelBO.Author.Id;
+            authoredobj.Title = modelBO.Title;
+            authoredobj.Createddate = modelBO.CreatedDate;
+            authoredobj.Filetype = modelBO.Filetype;
+            authoredobj.Objdescription = modelBO.Description;
+            authoredobj.Objcontent = modelBO.Filename;
+            context.Add(authoredobj);
+            context.SaveChanges();
+
+            string uploadPath = Path.Combine(_environment.WebRootPath, "uploads");
+            if (!Directory.Exists(uploadPath))
+            {
+                Directory.CreateDirectory(uploadPath);
+            }
+
+            string filePath = Path.Combine(uploadPath, modelBO.Filename);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                modelBO.File.CopyToAsync(stream);
+            }
         }
         public IActionResult EditModel(int id)
         {
             ObjectBO objectBO = _siteRepository.FetchFileInfo(id);
+            objectBO.Tags = (List<TagBO>)_siteRepository.GetObjectTags(id);
+            objectBO.AllTags = (List<TagBO>)_siteRepository.GetTagList();
+            objectBO.AttachedObjects = (List<ObjectBO>)_siteRepository.FetchAssociatedObjects(id);
+            objectBO.Images = from attached in objectBO.AttachedObjects
+                              where attached.Filetype == "image"
+                              select attached;
+            int? userID = null;
+            if (HttpContext.Session.GetInt32("_UserID") != null)
+            {
+                userID = HttpContext.Session.GetInt32("_UserID");
+            }
+            if (userID != null)
+            {
+                objectBO.CurrentUser = _siteRepository.GetUser((int)userID);
+            }
             return View(objectBO);
         }
         public void ChangeModel(ObjectBO objectBO)
@@ -253,41 +314,39 @@ namespace dipwebapp.Controllers
         public IActionResult DownloadModel(int id)
         {
             ObjectBO modelBO = _siteRepository.FetchFileInfo(id);
-            if (modelBO != null) 
+            string filename = modelBO.ObjContent;
+            if (string.IsNullOrEmpty(filename))
             {
-                try
-                {
-                    byte[] fileBytes = _siteRepository.FetchFile(modelBO.ObjContent);
-                    return File(fileBytes, "application/octet-stream", modelBO.ObjContent);
-                }
-                catch (Exception ex)
-                {
-                    return View("UserMessage", "An error occurred, please try again." + ex.Message);
-                }
+                return Content("Filename is not provided.");
             }
-            else return View("UserMessage", "File not found.");
-        }
-        public IActionResult DeleteModel(int id) 
-        {
-            try
+            string filePath = Path.Combine(_environment.WebRootPath, "uploads", filename);
+            if (!System.IO.File.Exists(filePath))
             {
-                ObjectBO objectBO = _siteRepository.FetchFileInfo(id);
-                objectBO.AttachedObjects = (List<ObjectBO>)_siteRepository.FetchAssociatedObjects(id);
-                objectBO.Images = from attached in objectBO.AttachedObjects
+                return Content("File not found.");
+            }
+            byte[] fileBytes = System.IO.File.ReadAllBytes(filePath);
+            return File(fileBytes, "application/octet-stream", filename);
+        }
+        public IActionResult DeleteModel(int id)
+        {
+            ObjectBO objectBO = _siteRepository.FetchFileInfo(id);
+            objectBO.AttachedObjects = (List<ObjectBO>)_siteRepository.FetchAssociatedObjects(id);
+            objectBO.Images = from attached in objectBO.AttachedObjects
                               where attached.Filetype == "image"
                               select attached;
-                foreach(ObjectBO image in objectBO.Images)
-                {
-                    _siteRepository.DeleteFile(image.Id);
-                }
-                _siteRepository.DeleteFile(id);
+            string filename = objectBO.ObjContent;
+            string filePath = Path.Combine(_environment.WebRootPath, "uploads", filename);
+            FileInfo file = new FileInfo(filePath);
+            if (file.Exists)
+            {
+                file.Delete();
                 _siteRepository.RemoveAssociations(id);
                 _siteRepository.RemoveFileAssociations(id);
                 return View("UserMessage", "Your file has been deleted");
             }
-            catch (Exception ex)
+            else
             {
-                return View("UserMessage", "An error occurred, please try again." + ex.Message);
+                return View("UserMessage", "An error occurred, please try again.");
             }
         }
         public IActionResult CreateArticle()
@@ -312,6 +371,21 @@ namespace dipwebapp.Controllers
         public IActionResult EditArticle(int id) 
         {
             ObjectBO objectBO = _siteRepository.FetchArticle(id);
+            objectBO.Tags = (List<TagBO>)_siteRepository.GetObjectTags(id);
+            objectBO.AllTags = (List<TagBO>)_siteRepository.GetTagList();
+            objectBO.AttachedObjects = (List<ObjectBO>)_siteRepository.FetchAssociatedObjects(id);
+            objectBO.Images = from attached in objectBO.AttachedObjects
+                              where attached.Filetype == "image"
+                              select attached;
+            int? userID = null;
+            if (HttpContext.Session.GetInt32("_UserID") != null)
+            {
+                userID = HttpContext.Session.GetInt32("_UserID");
+            }
+            if (userID != null)
+            {
+                objectBO.CurrentUser = _siteRepository.GetUser((int)userID);
+            }
             return View(objectBO);
         }
         public IActionResult ChangeArticle(ObjectBO objectBO)
@@ -319,7 +393,7 @@ namespace dipwebapp.Controllers
             try
             {
                 _siteRepository.AlterArticle(objectBO);
-                return RedirectToAction("ViewArticle", new { id = objectBO.Id });
+                return RedirectToAction("ArticleView", new { id = objectBO.Id });
             }
             catch (Exception ex)
             {
@@ -350,7 +424,7 @@ namespace dipwebapp.Controllers
             }           
             if (modelBO.Filetype == "article")
             {
-                return RedirectToAction("ViewArticle", new { id = objid });
+                return RedirectToAction("ArticleView", new { id = objid });
             }
             else
             {
@@ -364,7 +438,7 @@ namespace dipwebapp.Controllers
             _siteRepository.RemoveTag(tagid, objid);
             if (modelBO.Filetype == "article")
             {
-                return RedirectToAction("ViewArticle", new { id = objid });
+                return RedirectToAction("ArticleView", new { id = objid });
             }
             else
             {
