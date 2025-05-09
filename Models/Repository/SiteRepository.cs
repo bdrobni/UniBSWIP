@@ -1,10 +1,12 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using dipwebapp.Controllers;
 using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using XAct;
+using XAct.Categorization;
 using XAct.Users;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
@@ -423,14 +425,9 @@ namespace dipwebapp.Models.Repository
         }
         public bool CheckAssociation(TagBO tagBO, ObjectBO objectBO)
         {
-            foreach(Tagassociations ta in context.Tagassociations)
-            {
-                Console.WriteLine("checking " + tagBO.Id.ToString() + " " + objectBO.Id.ToString());
-                if(ta.Tagid != tagBO.Id && ta.Objectid != objectBO.Id)
-                { return false; }
-                else {  return true; }
-            }
-            return true;
+            if(context.Tagassociations.SingleOrDefault(t => t.Tagid == tagBO.Id && t.Objectid == objectBO.Id) != null)
+            { return true; }
+            else { return false; }
         }
         public void ApplyTag(TagBO tagBO, ObjectBO objectBO)
         {
@@ -469,13 +466,9 @@ namespace dipwebapp.Models.Repository
 
         public bool CheckFileAssociation(ObjectBO parent, ObjectBO child)
         {
-            foreach (Fileassociations fa in context.Fileassociations)
-            {
-                if (fa.Parentfileid == parent.Id && fa.Associatedid == child.Id)
-                    return true;
-                else return false;
-            }
-            return true;
+            if (context.Fileassociations.SingleOrDefault(t => t.Parentfileid == parent.Id && t.Associatedid == child.Id) != null)
+            { return true; }
+            else { return false; }
         }
         public IEnumerable<ObjectBO> FetchAssociatedObjects(int parentid)
         {

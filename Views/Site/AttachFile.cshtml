@@ -8,7 +8,7 @@
     <h1>Select a file to attach</h1>
     @foreach(ObjectBO objectBO in Model.Objects)
     {
-        if (objectBO.Filetype == "model" && objectBO.Author == Model.CurrentUser)
+        if (objectBO.Filetype == "model" && objectBO.Author.Username == Model.CurrentUser.Username)
         {
             @Html.ActionLink(objectBO.Title, "AddAttachment", new { parentid = Model.Id, childid = objectBO.Id }, new { @class = "btn btn-outline-primary" })
             <br />
