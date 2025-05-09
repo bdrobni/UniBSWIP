@@ -8,6 +8,7 @@
     <h1>Select an image to upload</h1>
 
     <form asp-action="ImageUpload" enctype="multipart/form-data" method="post">
+        <input type="hidden" asp-for="Tempid" />
         <div class="form-group">
             <input type="file" asp-for="File" class="form-control" />
         </div>

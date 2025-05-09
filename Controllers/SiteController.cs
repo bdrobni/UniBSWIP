@@ -154,6 +154,7 @@ namespace dipwebapp.Controllers
                               where attached.Filetype == "image"
                               select attached;
             objectBO.WebRootString = _environment.WebRootPath;
+            Console.WriteLine(objectBO.WebRootString);
             int ? userID = null;
             if (HttpContext.Session.GetInt32("_UserID") != null)
             {
@@ -175,6 +176,7 @@ namespace dipwebapp.Controllers
                               where attached.Filetype == "image"
                               select attached;
             objectBO.WebRootString = _environment.WebRootPath;
+            Console.WriteLine(objectBO.WebRootString);
             int? userID = null;
             if (HttpContext.Session.GetInt32("_UserID") != null)
             {
@@ -202,7 +204,7 @@ namespace dipwebapp.Controllers
                 return View("UserMessage", "An error occurred, please try again." + ex.Message);
             }
         }
-        public IActionResult ModelUpload(ModelBO modelBO)
+        public async Task<IActionResult> ModelUpload(ModelBO modelBO)
         {
             modelBO.Author = _siteRepository.GetUser((int)HttpContext.Session.GetInt32("_UserID"));
             modelBO.CreatedDate = DateTime.Now;
@@ -210,7 +212,7 @@ namespace dipwebapp.Controllers
             modelBO.Filetype = "model";            
                 try
                 {
-                    InsertFile(modelBO);
+                    await InsertFile(modelBO);
                     return View("UserMessage", "Your file has been uploaded");
                 }
                 catch (Exception ex)
@@ -224,7 +226,7 @@ namespace dipwebapp.Controllers
             objectBO.Tempid = id;
             return View(objectBO);
         }
-        public IActionResult ImageUpload(ModelBO modelBO)
+        public async Task<IActionResult> ImageUpload(ModelBO modelBO)
         {
             modelBO.Id = _siteRepository.GenerateFileID();
             modelBO.Author = _siteRepository.GetUser((int)HttpContext.Session.GetInt32("_UserID"));
@@ -234,8 +236,8 @@ namespace dipwebapp.Controllers
             modelBO.Filetype = "image";          
                 try
                 {
-                    InsertImage(modelBO);
-                    AddAttachment(modelBO.Id, modelBO.Tempid);
+                    await InsertImage(modelBO);
+                    AddAttachment(modelBO.Tempid, modelBO.Id);
                     return View("UserMessage", "Your image has been uploaded");
                 }
                 catch (Exception ex)
@@ -243,7 +245,7 @@ namespace dipwebapp.Controllers
                     return View("UserMessage", "An error occurred, please try again." + ex.Message);
                 }
         }
-        public void InsertImage(ModelBO modelBO)
+        public async Task InsertImage(ModelBO modelBO)
         {
             Authoredobj authoredobj = new Authoredobj();
             authoredobj.Id = modelBO.Id;
@@ -255,9 +257,8 @@ namespace dipwebapp.Controllers
             authoredobj.Objcontent = modelBO.Filename;
             context.Add(authoredobj);
             context.SaveChanges();
-
+            /*
             string uploadPath = Path.Combine(_environment.WebRootPath, "images");
-
             if (!Directory.Exists(uploadPath))
             {
                 Directory.CreateDirectory(uploadPath);
@@ -268,8 +269,19 @@ namespace dipwebapp.Controllers
             {
                 modelBO.File.CopyToAsync(stream);
             }
+            */
+
+            var uploadPath = Path.Combine(_environment.WebRootPath, "images");
+            if (!Directory.Exists(uploadPath))
+                Directory.CreateDirectory(uploadPath);
+
+            var filePath = Path.Combine(uploadPath, modelBO.Filename);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await modelBO.File.CopyToAsync(stream);
+            }
         }
-        public void InsertFile(ModelBO modelBO)
+        public async Task InsertFile(ModelBO modelBO)
         {
             Authoredobj authoredobj = new Authoredobj();
             authoredobj.Id = context.Authoredobj.MakeUniqueIdentifier();
@@ -282,6 +294,7 @@ namespace dipwebapp.Controllers
             context.Add(authoredobj);
             context.SaveChanges();
 
+            /*
             string uploadPath = Path.Combine(_environment.WebRootPath, "uploads");
             if (!Directory.Exists(uploadPath))
             {
@@ -294,6 +307,17 @@ namespace dipwebapp.Controllers
             {
                 modelBO.File.CopyToAsync(stream);
             }
+            */
+            var uploadPath = Path.Combine(_environment.WebRootPath, "uploads");
+            if (!Directory.Exists(uploadPath))
+                Directory.CreateDirectory(uploadPath);
+
+            var filePath = Path.Combine(uploadPath, modelBO.Filename);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await modelBO.File.CopyToAsync(stream);
+            }
+
         }
         public IActionResult EditModel(int id)
         {
