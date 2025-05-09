@@ -5,6 +5,7 @@ using System;
 using XAct;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Hosting;
+using XAct.Categorization;
 
 namespace dipwebapp.Controllers
 {
@@ -90,41 +91,57 @@ namespace dipwebapp.Controllers
         {
             SearchViewModel svm = searchviewmodel;
             List<ObjectBO> objectList = (List<ObjectBO>)_siteRepository.FetchObjectList();
-            if(svm.SearchBoxContent != null || svm.SearchBoxContent != "")
+            if(svm.SelectedAuthor != null && svm.SelectedAuthor != "")
+            {
+                for (int i = objectList.Count - 1; i >= 0; i--)
+                {
+                    if(objectList.ElementAt(i).Author.Username != svm.SelectedAuthor)
+                    {
+                        Console.WriteLine("removed non-tagged" + objectList.ElementAt(i).Title);
+                        objectList.Remove(objectList.ElementAt(i));
+                    }
+                }
+            }
+            if(svm.SearchBoxContent != null && svm.SearchBoxContent != "")
             {
                 string[] tags = svm.SearchBoxContent.Split(',');
                 svm.Tags = (List<TagBO>)_siteRepository.GetTagList();
                 List<TagBO> tagList = (List<TagBO>)_siteRepository.GetTagListByNames(tags);
-                foreach (TagBO tagBO in tagList) { Console.WriteLine(tagBO.Name); }
                 foreach (TagBO tag in tagList)
                 {
                     for (int i = objectList.Count - 1; i >= 0; i--) 
                     {
                         if (!_siteRepository.CheckAssociation(tag, objectList.ElementAt(i)))
-                            objectList.Remove(objectList.ElementAt(i));
-                    }
-                }
-                for (int i = objectList.Count - 1; i >= 0; i--)
-                {
-                    if (svm.SelectedFileType != "all")
-                    {
-                        if (svm.SelectedFileType != objectList.ElementAt(i).Filetype)
                         {
-                            objectList.Remove(objectList.ElementAt(i));
-                        }
+                            Console.WriteLine("removed non-tagged" + objectList.ElementAt(i).Title);
+                            objectList.Remove(objectList.ElementAt(i));                           
+                        }                       
                     }
-                    else if (objectList.ElementAt(i).Filetype == "image")
+                }               
+            }
+            for (int i = objectList.Count - 1; i >= 0; i--)
+            {
+                if (svm.SelectedFileType != "all")
+                {
+                    if (svm.SelectedFileType != objectList.ElementAt(i).Filetype)
                     {
+                        Console.WriteLine("removed" + objectList.ElementAt(i).Filetype + objectList.ElementAt(i).Title);
                         objectList.Remove(objectList.ElementAt(i));
                     }
+                }
+                else if (objectList.ElementAt(i).Filetype == "image")
+                {
+                    Console.WriteLine("removed" + objectList.ElementAt(i).Filetype + objectList.ElementAt(i).Title);
+                    objectList.Remove(objectList.ElementAt(i));
                 }
             }
             if (svm.SortOption == "oldest")
             {
-                objectList = (List<ObjectBO>)objectList.OrderBy(o => o.CreatedDate);
+                objectList = objectList.OrderBy(o => o.CreatedDate).AsEnumerable<ObjectBO>().ToList<ObjectBO>();
             }
 
             svm.SelectedObjects = objectList;
+            svm.Tags = (List<TagBO>)_siteRepository.GetTagList();
             return View("Search", svm);
         }
         public IActionResult ArticleView(int id) 
@@ -449,15 +466,21 @@ namespace dipwebapp.Controllers
         public IActionResult AttachFile(int id)
         {
             ObjectBO modelBO = _siteRepository.FetchFileInfo(id);
-            modelBO.Objects = _siteRepository.FetchFileList();
+            modelBO.Objects = _siteRepository.FetchObjectList();
             int? userID = null;
             if (HttpContext.Session.GetInt32("_UserID") != null)
             {
                 userID = HttpContext.Session.GetInt32("_UserID");
+                Console.WriteLine(userID.ToString());
             }
             if (userID != null)
             {
                 modelBO.CurrentUser = _siteRepository.GetUser((int)userID);
+                Console.WriteLine(modelBO.CurrentUser.Username);
+                foreach(ObjectBO obj in modelBO.Objects)
+                {
+                    Console.WriteLine(obj.Title);
+                }
             }
             return View(modelBO);
         }
@@ -470,7 +493,14 @@ namespace dipwebapp.Controllers
                 try
                 {
                     _siteRepository.CreateAssociation(parent, child);
-                    return RedirectToAction("ModelDetails", new { id = parentid });
+                    if (parent.Filetype == "article")
+                    {
+                        return RedirectToAction("ArticleView", new { id = parentid });
+                    }
+                    else
+                    {
+                        return RedirectToAction("ModelDetails", new { id = parentid });
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -482,10 +512,18 @@ namespace dipwebapp.Controllers
         }
         public IActionResult RemoveAttachment(int parentid, int childid)
         {
+            ObjectBO parent = _siteRepository.FetchFileInfo(parentid);
             try
             {
                _siteRepository.RemoveSingleAssociation(parentid, childid);
-               return RedirectToAction("ModelDetails", new { id = parentid });
+                if (parent.Filetype == "article")
+                {
+                    return RedirectToAction("ArticleView", new { id = parentid });
+                }
+                else
+                {
+                    return RedirectToAction("ModelDetails", new { id = parentid });
+                }
             }
             catch (Exception ex)
             {

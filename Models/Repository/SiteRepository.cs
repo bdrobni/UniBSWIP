@@ -1,10 +1,12 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using dipwebapp.Controllers;
 using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using XAct;
+using XAct.Categorization;
 using XAct.Users;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
@@ -79,148 +81,6 @@ namespace dipwebapp.Models.Repository
                 return ms.ToArray();
             }
         }
-        /*
-        public void InsertFile(int repeatCount, ModelBO modelBO)
-        {
-
-            //An error occurred, please try again.The INSERT statement conflicted with the FOREIGN KEY constraint "FK__mdlfile__objecti__7F2BE32F". The conflict occurred in database "dipwebapp", table "dbo.authoredobj", column 'Id'. The statement has been terminated.
-            object transactionContext;
-            System.Data.SqlClient.SqlParameter parameter;
-            System.Data.SqlTypes.SqlFileStream sqlFileStream;
-            byte[] fileData;
-            string filePathInServer;
-            int rowsInserted;
-            System.DateTime startTime;
-            System.DateTime endTime;
-
-            Authoredobj authoredobj = new Authoredobj();
-            authoredobj.Id = context.Authoredobj.MakeUniqueIdentifier();
-            authoredobj.Authorid = modelBO.Author.Id;
-            authoredobj.Title = modelBO.Title;
-            authoredobj.Createddate = modelBO.CreatedDate;
-            authoredobj.Filetype = modelBO.Filetype;
-            context.Add(authoredobj);
-            context.SaveChanges();
-
-
-            using (System.Data.SqlClient.SqlConnection connection = new System.Data.SqlClient.SqlConnection("Server=LAPTOP-JTKM7IQ6;Database=dipwebapp;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"))
-            {                
-                connection.Open();
-                using (System.Data.SqlClient.SqlCommand command = connection.CreateCommand())
-                {
-                    using (System.Data.SqlClient.SqlCommand helperCommand = connection.CreateCommand())
-                    {
-                        command.CommandText = "INSERT INTO mdlfile ([RowGuid],[filedata],[filename],[objectid]) VALUES (@guid,@filedata,@filename,@Id)";
-                        command.CommandType = System.Data.CommandType.Text;
-
-                        parameter = new System.Data.SqlClient.SqlParameter("@guid", System.Data.SqlDbType.UniqueIdentifier);
-                        parameter.Value = Guid.NewGuid();
-                        command.Parameters.Add(parameter);
-
-                        parameter = new System.Data.SqlClient.SqlParameter("@filedata", System.Data.SqlDbType.VarBinary);
-                        parameter.Value = ConvertIFormFileToByteArray(modelBO.File);
-                        command.Parameters.Add(parameter);
-
-                        parameter = new System.Data.SqlClient.SqlParameter("@filename", System.Data.SqlDbType.VarChar);
-                        parameter.Value = modelBO.Filename;
-                        command.Parameters.Add(parameter);
-
-                        parameter = new System.Data.SqlClient.SqlParameter("@Id", System.Data.SqlDbType.Int);
-                        parameter.Value = authoredobj.Id;
-                        command.Parameters.Add(parameter);
-
-                        command.Transaction = connection.BeginTransaction();
-                        startTime = System.DateTime.Now;
-                        for (int counter = 0; counter < repeatCount; counter++)
-                        {
-                            rowsInserted = command.ExecuteNonQuery();
-                        }
-                        endTime = System.DateTime.Now;
-                        command.Transaction.Commit();
-                    }
-                }
-                connection.Close();
-            }
-        }
-        */
-        /*
-        public ModelBO FetchModelInfo(int id)
-        {
-            Authoredobj authoredobj = context.Authoredobj.FirstOrDefault(a=>a.Id==id);
-            Mdlfile mdlfile = context.Mdlfile.FirstOrDefault(m=>m.Objectid==id);
-            ModelBO modelBO = new ModelBO();
-            if (authoredobj != null && mdlfile != null && authoredobj.Filetype == "model") 
-            {
-                modelBO.Id = id;
-                modelBO.Title = authoredobj.Title;
-                modelBO.CreatedDate = authoredobj.Createddate;
-                modelBO.Author = GetUser(authoredobj.Authorid);
-                modelBO.Filetype = authoredobj.Filetype;
-                modelBO.Filename = mdlfile.Filename;
-                modelBO.Guid = mdlfile.RowGuid;
-            }
-            return modelBO;
-        }
-        public IEnumerable<ModelBO> FetchModelList()
-        {
-            List<ModelBO> models = new List<ModelBO>();
-            foreach (Authoredobj a in context.Authoredobj)
-            {
-                if (a.Filetype == "model")
-                {
-                    models.Add(FetchModelInfo(a.Id));
-                }
-            }
-            return models;
-        }
-
-        public byte[] FetchFileUsingSqlParameter(string guid)
-        {
-            byte[] data = null;
-            System.Data.SqlClient.SqlParameter parameter;
-            System.Data.SqlClient.SqlDataReader reader;
-
-
-            using (System.Data.SqlClient.SqlConnection connection = new System.Data.SqlClient.SqlConnection("Server=LAPTOP-JTKM7IQ6;Database=dipwebapp;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;"))
-            {
-                connection.Open();
-                using (System.Data.SqlClient.SqlCommand command = connection.CreateCommand())
-                {
-                    command.CommandText = "SELECT [filedata] FROM mdlfile WHERE [RowGuid] = @guid";
-                    command.CommandType = System.Data.CommandType.Text;
-
-                    parameter = new System.Data.SqlClient.SqlParameter("@guid", System.Data.SqlDbType.UniqueIdentifier);
-                    parameter.Value = new System.Guid(guid);
-                    command.Parameters.Add(parameter);
-
-                    reader = command.ExecuteReader();
-                    reader.Read();
-
-                    data = (byte[])reader["filedata"];
-                }
-                connection.Close();
-                return data;
-            }
-        }
-        */
-
-        /*
-        public void DeleteFileAndObject(int id)
-        {
-            Authoredobj authoredobj = context.Authoredobj.FirstOrDefault(a => a.Id == id);
-            Mdlfile mdlfile = context.Mdlfile.FirstOrDefault(m => m.Objectid == id);
-            if (authoredobj != null && mdlfile != null)
-            {
-                context.Mdlfile.Remove(mdlfile);
-                context.Authoredobj.Remove(authoredobj);                
-            }
-            else if (authoredobj != null) 
-            {
-                context.Authoredobj.Remove(authoredobj);
-            }
-            context.SaveChanges();
-        }
-        */
 
         public void InsertFile(ModelBO modelBO)
         {
@@ -451,26 +311,26 @@ namespace dipwebapp.Models.Repository
             tagBO.Description = tag.Tagdescription;
             return tagBO;
         }
-
+        /*
         public TagBO GetTagByName(string name)
         {
-            Tag tag = new Tag();
-            foreach(Tag t in context.Tag)
-            {
-                if(t.Tagname == name)
-                {
-                    tag = t; break;
-                }
-            }
             TagBO tagBO = new TagBO();
-            if(tag != null)
+            foreach (Tag t in context.Tag)
             {
-                tagBO.Id = tag.Id;
-                tagBO.Name = tag.Tagname;
-                tagBO.Description = tag.Tagdescription;
-            }
+                if(t.Tagname == name && name != "")
+                {
+                    Tag tag = t;
+                    if (tag != null)
+                    {
+                        tagBO.Id = tag.Id;
+                        tagBO.Name = tag.Tagname;
+                        tagBO.Description = tag.Tagdescription;
+                    }
+                }
+            }            
             return tagBO;
         }
+        */
         public IEnumerable<TagBO> GetObjectTags(int objectid)
         {
             List<TagBO> tags = new List<TagBO>();
@@ -500,8 +360,22 @@ namespace dipwebapp.Models.Repository
         {
             List<TagBO> tags = new List<TagBO>();
             foreach(string name in names)
-            {
-                tags.Add(GetTagByName(name));
+            {                    
+                    foreach (Tag t in context.Tag)
+                    {
+                        if (t.Tagname == name && name != "")
+                        {
+                            if (t != null)
+                            {
+                                TagBO tagBO = new TagBO();
+                                tagBO.Id = t.Id;
+                                tagBO.Name = t.Tagname;
+                                tagBO.Description = t.Tagdescription;
+                                tags.Add(tagBO);
+                                Console.WriteLine("added " + tagBO.Name);
+                            }
+                        }                                    
+                    }                          
             }
             return tags;
         }
@@ -551,12 +425,9 @@ namespace dipwebapp.Models.Repository
         }
         public bool CheckAssociation(TagBO tagBO, ObjectBO objectBO)
         {
-            foreach(Tagassociations ta in context.Tagassociations)
-            {
-                if(ta.Tagid == tagBO.Id && ta.Objectid == objectBO.Id)
-                return true;
-            }
-            return false;
+            if(context.Tagassociations.SingleOrDefault(t => t.Tagid == tagBO.Id && t.Objectid == objectBO.Id) != null)
+            { return true; }
+            else { return false; }
         }
         public void ApplyTag(TagBO tagBO, ObjectBO objectBO)
         {
@@ -595,12 +466,9 @@ namespace dipwebapp.Models.Repository
 
         public bool CheckFileAssociation(ObjectBO parent, ObjectBO child)
         {
-            foreach (Fileassociations fa in context.Fileassociations)
-            {
-                if (fa.Parentfileid == parent.Id && fa.Associatedid == child.Id)
-                    return true;
-            }
-            return false;
+            if (context.Fileassociations.SingleOrDefault(t => t.Parentfileid == parent.Id && t.Associatedid == child.Id) != null)
+            { return true; }
+            else { return false; }
         }
         public IEnumerable<ObjectBO> FetchAssociatedObjects(int parentid)
         {

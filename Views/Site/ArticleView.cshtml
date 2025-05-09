@@ -104,7 +104,7 @@
             {
                 if(f.Filetype == "model")
                 {
-                    @Html.ActionLink(f.Title, "ModelDetails", new { id = f.Id }, new { @class = "btn btn-outline-primary" }) @Html.ActionLink("X", "RemoveAttachment", new { parentid = Model.Id, childid = f.Id }, new { @class = "btn btn-outline-primary" })
+                    <p>@Html.ActionLink(f.Title, "ModelDetails", new { id = f.Id }, new { @class = "btn btn-outline-primary" }) @Html.ActionLink("(X)", "RemoveAttachment", new { parentid = Model.Id, childid = f.Id }, new { @class = "btn btn-outline-primary" })</p>
                 }
             }
         }
